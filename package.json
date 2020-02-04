@@ -1,0 +1,70 @@
+{
+  "name": "@natlibfi/melinda-record-load-rest-api-bridge",
+  "description": "Software bridge for melinda record load api scripts to REST api integration",
+  "author": {
+    "name": "The National Library of Finland"
+  },
+  "homepage": "https://github.com/natlibfi/melinda-record-load-rest-api-bridge",
+  "bugs": {
+    "url": "https://github.com/natlibfi/melinda-record-load-rest-api-bridge/issues"
+  },
+  "repository": {
+    "type": "",
+    "url": "git@github.com/natlibfi/melinda-record-load-rest-api-bridge"
+  },
+  "license": "AGPL-3.0+",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "engines": {
+    "node": "12"
+  },
+  "scripts": {
+    "lint": "eslint ./src",
+    "lint:dev": "eslint ./src --fix",
+    "check-deps": "npm-check;exit 0",
+    "test": "npm run lint",
+    "dev": "NODE_ENV=development nodemon",
+    "build": "babel src --source-maps --copy-files --delete-dir-on-start --out-dir=dist --minified --no-comments"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.11.2",
+    "@natlibfi/melinda-backend-commons": "^2.0.2",
+    "@natlibfi/melinda-commons": "^11.1.1",
+    "@natlibfi/melinda-rest-api-client": "^1.0.0",
+    "@natlibfi/melinda-rest-api-commons": "^1.0.0",
+    "http-status": "^1.4.2",
+    "node-fetch": "^2.6.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.11.6",
+    "@babel/core": "^7.11.6",
+    "@babel/node": "^7.10.5",
+    "@babel/preset-env": "^7.11.5",
+    "@babel/register": "^7.11.5",
+    "@natlibfi/eslint-config-melinda-backend": "^1.0.5",
+    "eslint": "^7.10.0",
+    "nodemon": "^2.0.4",
+    "npm-check": "^5.9.2"
+  },
+  "eslintConfig": {
+    "extends": "@natlibfi/melinda-backend"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "targets": "maintained node versions"
+        }
+      ]
+    ]
+  },
+  "nodemonConfig": {
+    "exec": "npm run lint:dev && npm run build",
+    "watch": [
+      "src/*"
+    ],
+    "ext": "js",
+    "delay": 2.5
+  }
+}
