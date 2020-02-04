@@ -1,4 +1,4 @@
-# Melinda record load rest bridge
+# Melinda record load rest api bridge
 
 Software bridge for melinda record load api scripts to REST api integration
 
