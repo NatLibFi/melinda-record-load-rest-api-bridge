@@ -1,6 +1,6 @@
 # Melinda record load rest bridge
 
-Software bridge for melinda record load api to REST api integration
+Software bridge for melinda record load api scripts to REST api integration
 
 ## License and copyright
 

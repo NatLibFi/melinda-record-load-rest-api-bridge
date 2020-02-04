@@ -1,0 +1,64 @@
+{
+  "name": "@natlibfi/melinda-record-load-rest-api-bridge",
+  "description": "Software bridge for melinda record load api scripts to REST api integration",
+  "author": {
+    "name": "The National Library of Finland"
+  },
+  "homepage": "https://github.com/natlibfi/melinda-record-load-rest-api-bridge",
+  "bugs": {
+    "url": "https://github.com/natlibfi/melinda-record-load-rest-api-bridge/issues"
+  },
+  "repository": {
+    "type": "",
+    "url": "git@github.com/natlibfi/melinda-record-load-rest-api-bridge"
+  },
+  "license": "AGPL-3.0+",
+  "version": "1.0.0",
+  "main": "./src/app.js",
+  "engines": {
+    "node": "12"
+  },
+  "scripts": {
+    "lint": "eslint ./src --fix",
+    "build": "babel src -d dist"
+  },
+  "dependencies": {
+    "@natlibfi/marc-record-serializers": "^5.0.1",
+    "@natlibfi/melinda-commons": "git+https://github.com/NatLibFi/melinda-commons-js.git#new-common-class-error",
+    "@natlibfi/melinda-rest-api-commons": "git+https://github.com/NatLibFi/melinda-rest-api-commons.git#dev",
+    "axios": "^0.19.2",
+    "ora": "^4.0.3"
+  },
+  "eslintConfig": {
+    "extends": [
+      "xo"
+    ],
+    "rules": {
+      "prefer-arrow-callback": [
+        "error"
+      ]
+    }
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.8.3",
+    "@babel/core": "^7.8.3",
+    "@babel/node": "^7.8.4",
+    "@babel/preset-env": "^7.8.4",
+    "@babel/register": "^7.8.3",
+    "eslint": "^6.8.0",
+    "eslint-config-xo": "^0.27.2",
+    "eslint-plugin-import": "^2.20.0"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "node": "12"
+          }
+        }
+      ]
+    ]
+  }
+}
