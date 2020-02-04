@@ -40,9 +40,9 @@ async function run() {
     */
 
 	// For the test
-	args[1] = '/home/jonollil/LOCKFILE-PATH-HERE/bulk-loader-rest-test-new.seq';
-	args[3] = 'test.syslog';
-	args[12] = 'kvp4046';
+	// args[1] = '/file/location/here/test.seq';
+	// args[3] = 'test.syslog';
+	// args[12] = 'test000';
 
 	try {
 		const params = {
