@@ -1,0 +1,87 @@
+---
+kind: pipeline
+name: production
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: deploy
+  image: quay.io/natlibfi/drone-plugin-scp
+  settings:
+    host:
+      from_secret: host_production
+    username:
+      from_secret: username_production
+    key:
+      from_secret: ssh_key_production
+    rm: true
+    source:
+    - "README.md"
+    - "package.json"
+    - "src/*"
+    target: /exlibris/linnea/melinda-record-load-rest-api-bridge/
+- name: npm install
+  image: quay.io/natlibfi/drone-plugin-ssh
+  settings:
+    host:
+      from_secret: host_production
+    username:
+      from_secret: username_production
+    key:
+      from_secret: ssh_key_production
+    script:
+    - "cd /exlibris/linnea/melinda-record-load-rest-api-bridge/"
+    - "npm install"
+
+trigger:
+  branch:
+  - master
+  event:
+  - push
+
+---
+kind: pipeline
+name: test
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: deploy
+  image: quay.io/natlibfi/drone-plugin-scp
+  settings:
+    host:
+      from_secret: host_test
+    username:
+      from_secret: username_test
+    key:
+      from_secret: ssh_key_test
+    rm: true
+    source:
+    - "README.md"
+    - "package.json"
+    - "src/*"
+    target: /exlibris/linnea/melinda-record-load-rest-api-bridge/
+- name: npm install
+  image: quay.io/natlibfi/drone-plugin-ssh
+  settings:
+    host:
+      from_secret: host_test
+    username:
+      from_secret: username_test
+    key:
+      from_secret: ssh_key_test
+    script:
+    - "cd /exlibris/linnea/melinda-record-load-rest-api-bridge/"
+    - "npm install"
+
+trigger:
+  branch:
+  - test
+  event:
+  - push
+
+...
