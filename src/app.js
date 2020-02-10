@@ -70,6 +70,7 @@ async function run() {
 			fs.accessSync(params.inputFile, fs.constants.R_OK);
 			// Console.log(`${file} is readable`);
 		} catch (err) {
+			console.log(params.inputFile)
 			console.log(err);
 			throw new ProcessError(404, 'Inputfile not found');
 		}
@@ -87,7 +88,8 @@ async function run() {
 			auth: {
 				username: REST_API_USERNAME,
 				password: REST_API_PASSWORD
-			}
+			},
+			maxContentLength: 13000000
 		});
 
 		spinner.succeed('Files has been set to queue');
