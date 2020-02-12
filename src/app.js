@@ -48,7 +48,7 @@ async function run() {
 		const params = {
 			library: args[0],
 			inputFile: args[1],
-			rejectedFile: null,
+			rejectedFile: args[2],
 			resultFile: args[3],
 			method: args[4],
 			fixRoutine: args[5],
