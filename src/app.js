@@ -103,10 +103,11 @@ async function run() {
 
 			correlationId = response.data.correlationId,
 
-				console.log('Waiting for status updates');
+			console.log('Waiting for status updates');
 
 			currentQueueItemState = response.data.queueItemState;
 			lastChangeTime = response.data.modificationTime;
+			spinner.start(`${currentQueueItemState} modification time: ${lastChangeTime} , Ids handled: ${result.handledIds.length}`);
 			await pollResult();
 		} catch (err) {
 			console.log('error', err);
