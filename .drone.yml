@@ -21,7 +21,7 @@ steps:
     - "README.md"
     - "package.json"
     - "src/*"
-    target: /exlibris/linnea/melinda-record-load-rest-api-bridge/
+    target: /exlibris/linnea/melinda-record-load-rest-api-bridge/app/
 - name: npm install
   image: quay.io/natlibfi/drone-plugin-ssh
   settings:
@@ -32,7 +32,7 @@ steps:
     key:
       from_secret: ssh_key_production
     script:
-    - "cd /exlibris/linnea/melinda-record-load-rest-api-bridge/"
+    - "cd /exlibris/linnea/melinda-record-load-rest-api-bridge/app/"
     - "npm install"
     - "npm run build"
 
@@ -65,7 +65,7 @@ steps:
     - "README.md"
     - "package.json"
     - "src/*"
-    target: /exlibris/linnea/melinda-record-load-rest-api-bridge/
+    target: /exlibris/linnea/melinda-record-load-rest-api-bridge/app/
 - name: npm install
   image: quay.io/natlibfi/drone-plugin-ssh
   settings:
@@ -76,7 +76,7 @@ steps:
     key:
       from_secret: ssh_key_test
     script:
-    - "cd /exlibris/linnea/melinda-record-load-rest-api-bridge/"
+    - "cd /exlibris/linnea/melinda-record-load-rest-api-bridge/app/"
     - "npm install"
     - "npm run build"
 
