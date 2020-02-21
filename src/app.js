@@ -17,7 +17,7 @@ async function run() {
 	let spinner;
 	if (process.argv[2] === '' && process.argv[3] !== null) {
 		spinner = ora('Start track status!').start();
-		correlationId = process.argv[3]
+		correlationId = process.argv[3];
 		pollResult();
 	} else {
 		spinner = ora('Start bulk loader!').start();
@@ -44,27 +44,14 @@ async function run() {
 		]
 		*/
 
-		// For the test
-		// args[1] = '/file/location/here/test.seq';
-		// args[3] = 'test.syslog';
-		// args[12] = 'test000';
-
 		try {
+			// Turn params to camelCase
 			const params = {
-				library: args[0],
-				inputFile: args[1],
-				rejectedFile: args[2],
-				resultFile: args[3],
-				method: args[4],
-				fixRoutine: args[5],
-				indexing: args[7],
-				updateAction: args[8],
-				mode: args[9],
-				charConversion: args[10],
-				mergeRoutine: args[11],
-				cataloger: args[12], // Replace with REST_API_USERNAME? To avoid miss usage
-				catalogerLevel: args[13],
-				indexingPriority: args[14]
+				pActiveLibrary: args[0],
+				pInputFile: args[1],
+				pRejectFile: args[2],
+				pLogFile: args[3],
+				pOldNew: args[4]
 			};
 			spinner.start('Loaded parmas');
 			// Console.log(params);
@@ -72,22 +59,22 @@ async function run() {
 			// Check if the file is readable.
 			spinner.start('Checking file');
 			try {
-				fs.accessSync(params.inputFile, fs.constants.R_OK);
+				fs.accessSync(params.pInputFile, fs.constants.R_OK);
 				// Console.log(`${file} is readable`);
 			} catch (err) {
-				console.log(params.inputFile)
+				console.log(params.pInputFile);
 				console.log(err);
 				throw new ProcessError(404, 'Inputfile not found');
 			}
 
-			const stream = fs.createReadStream(params.inputFile);
+			const stream = fs.createReadStream(params.pInputFile);
 
 			spinner.start('Uploading file to queue');
 			const response = await axios({
 				method: 'post',
 				baseURL: REST_API_URL,
-				url: (params.method === 'OLD') ? 'bulk/update' : 'bulk/create',
-				headers: {"content-type": 'application/alephseq'},
+				url: (params.pOldNew === 'OLD') ? 'bulk/update' : 'bulk/create',
+				headers: {'content-type': 'application/alephseq'},
 				params,
 				data: stream,
 				responseType: 'json',
@@ -99,15 +86,15 @@ async function run() {
 			});
 
 			spinner.succeed('Files has been set to queue');
-			console.log(response.data);
+			console.log(response.data.value);
 
-			correlationId = response.data.correlationId,
+			correlationId = response.data.value.correlationId;
 
 			console.log('Waiting for status updates');
 
-			currentQueueItemState = response.data.queueItemState;
-			lastChangeTime = response.data.modificationTime;
-			spinner.start(`${currentQueueItemState} modification time: ${lastChangeTime} , Ids handled: ${result.handledIds.length}`);
+			currentQueueItemState = response.data.value.queueItemState;
+			lastChangeTime = response.data.value.modificationTime;
+			spinner.start(`${currentQueueItemState} modification time: ${lastChangeTime} , Ids handled: ${response.data.value.handledIds.length}`);
 			await pollResult();
 		} catch (err) {
 			console.log('error', err);
@@ -125,7 +112,7 @@ async function run() {
 				method: 'get',
 				baseURL: REST_API_URL,
 				url: `bulk/?id=${correlationId}`,
-				headers: {"content-type": 'application/alephseq'},
+				headers: {'content-type': 'application/alephseq'},
 				responseType: 'json',
 				auth: {
 					username: REST_API_USERNAME,
@@ -145,7 +132,7 @@ async function run() {
 				spinner.start(`${currentQueueItemState} modification time: ${lastChangeTime} , Ids handled: ${result.handledIds.length}`);
 			}
 
-			if (result.queueItemState.startsWith(QUEUE_ITEM_STATE.ERROR)) {
+			if (result.queueItemState === QUEUE_ITEM_STATE.ERROR) {
 				spinner.fail('Request has failed');
 				console.log(result);
 				process.exit(0);
