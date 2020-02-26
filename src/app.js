@@ -1,6 +1,6 @@
 import fs from 'fs';
 import axios from 'axios';
-import ProcessError from '@natlibfi/melinda-commons';
+import {Error} from '@natlibfi/melinda-commons';
 import {QUEUE_ITEM_STATE} from '@natlibfi/melinda-rest-api-commons';
 import {promisify} from 'util';
 import {REST_API_PASSWORD, REST_API_USERNAME, REST_API_URL} from './config';
@@ -64,7 +64,7 @@ async function run() {
 			} catch (err) {
 				console.log(params.pInputFile);
 				console.log(err);
-				throw new ProcessError(404, 'Inputfile not found');
+				throw new Error(404, 'Inputfile not found');
 			}
 
 			const stream = fs.createReadStream(params.pInputFile);
@@ -98,7 +98,7 @@ async function run() {
 			await pollResult();
 		} catch (err) {
 			console.log('error', err);
-			process.exit(5);
+			process.exit(1);
 		}
 	}
 
@@ -121,7 +121,7 @@ async function run() {
 			});
 
 			if (response.data === []) {
-				throw new ProcessError(404, `Queue item ${correlationId} not found!`);
+				throw new Error(404, `Queue item ${correlationId} not found!`);
 			}
 
 			const result = response.data[0];
@@ -147,7 +147,7 @@ async function run() {
 			}
 		} catch (error) {
 			console.log('error', error);
-			process.exit(5);
+			process.exit(1);
 		}
 	}
 }
