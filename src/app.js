@@ -131,7 +131,7 @@ async function run() {
       const [result] = response.data;
 
       if (result.queueItemState !== currentQueueItemState || result.modificationTime !== lastChangeTime) {
-        currentQueueItemState = result.queueItemState;
+        currentQueueItemState = result.queueItemState || 'Waiting...';
         lastChangeTime = result.modificationTime;
         spinner.start(`${currentQueueItemState} modification time: ${lastChangeTime} , Ids handled: ${result.handledIds.length}`);
 
