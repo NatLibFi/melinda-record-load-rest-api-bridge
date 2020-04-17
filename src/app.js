@@ -19,7 +19,7 @@ async function run() {
   console.log('Melinda record load rest api bridge'); // eslint-disable-line no-console
   if (process.argv[2] === '' && process.argv[3] !== null) {
     spinner = ora('Start track status!').start();
-    [, , correlationId] = process.argv;
+    [, , ,correlationId] = process.argv;
     return pollResult();
   }
 
