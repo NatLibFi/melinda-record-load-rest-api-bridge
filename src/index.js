@@ -87,7 +87,7 @@ async function run() {
       return server.newProcess(params);
     }
 
-    throw new ApiError(400, 'Bad arguments')
+    throw new ApiError(400, 'Bad arguments');
   }
 
   logger.log('info', 'To run new process args 2 "p_active_library,p_input_file,p_reject_file,p_log_file,p_old_new"');
