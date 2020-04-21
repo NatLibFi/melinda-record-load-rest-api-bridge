@@ -9,7 +9,7 @@ const setTimeoutPromise = promisify(setTimeout);
 
 export default function () {
   const {createLogger} = Utils;
-  const logger = createLogger(); // eslint-disable-line no-unused-vars
+  const logger = createLogger();
 
   return {newProcess, pollResult};
 

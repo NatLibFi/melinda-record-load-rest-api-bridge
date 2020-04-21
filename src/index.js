@@ -35,16 +35,16 @@ run();
 
 async function run() {
   const {createLogger} = Utils;
-  const logger = createLogger(); // eslint-disable-line no-unused-vars
+  const logger = createLogger();
   const {handleInterrupt} = Utils;
   const rawPArgs = process.argv[2] || '';
   const correlationId = process.argv[3] || null;
 
   registerInterruptionHandlers();
 
-  const server = await startApp({...config}); // eslint-disable-line prefer-const
+  const server = await startApp({...config});
 
-  logger.log('info', 'Melinda record load rest api bridge'); // eslint-disable-line no-console
+  logger.log('info', 'Melinda record load rest api bridge');
   if (rawPArgs === '' && correlationId !== null) {
     logger.log('info', `Start track process status of ${correlationId}!`);
     return server.pollResult(correlationId);
