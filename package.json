@@ -29,7 +29,8 @@
   "dependencies": {
     "@natlibfi/melinda-commons": "^8.0.0",
     "@natlibfi/melinda-rest-api-commons": "git+https://github.com/NatLibFi/melinda-rest-api-commons.git#melkehitys-1054",
-    "axios": "^0.19.2",
+    "http-status": "^1.4.2",
+    "node-fetch": "2.6.0",
     "ora": "^4.0.3"
   },
   "devDependencies": {

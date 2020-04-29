@@ -1,13 +1,13 @@
 import fs from 'fs';
-import axios from 'axios';
+import fetch from 'node-fetch';
 import {Error as ApiError, Utils} from '@natlibfi/melinda-commons';
 import {logError, QUEUE_ITEM_STATE} from '@natlibfi/melinda-rest-api-commons';
+import httpStatus from 'http-status';
 import {promisify} from 'util';
-import {REST_API_PASSWORD, REST_API_USERNAME, REST_API_URL} from './config';
 
 const setTimeoutPromise = promisify(setTimeout);
 
-export default function () {
+export default function ({restApiPassword, restApiUsername, restApiUrl}) {
   const {createLogger} = Utils;
   const logger = createLogger();
 
@@ -18,34 +18,35 @@ export default function () {
       logger.log('verbose', 'Settings loaded');
       logger.log('debug', `Settings:\n${JSON.stringify(params)}`);
 
-      const stream = readFiletoStream(params.pInputFile);
+      const query = urlQueryParams(params);
+      const urlEnd = params.pOldNew === 'OLD' ? 'bulk/update?' : 'bulk/create?';
+      const url = new URL(urlEnd + query, restApiUrl);
 
       logger.log('verbose', 'Uploading file to queue');
-      const response = await axios({
+      logger.log('debug', url.toString());
+      const response = await fetch(url, {
         method: 'post',
-        baseURL: REST_API_URL,
-        url: params.pOldNew === 'OLD' ? 'bulk/update' : 'bulk/create',
-        headers: {'content-type': 'application/alephseq'},
-        params,
-        data: stream,
-        responseType: 'json',
-        auth: {
-          username: REST_API_USERNAME,
-          password: REST_API_PASSWORD
+        headers: {
+          'content-type': 'application/alephseq',
+          'Authorization': `Basic ${Buffer.from(`${restApiUsername}:${restApiPassword}`).toString('base64')}`,
+          'Accept': 'application/json'
         },
-        maxContentLength: 13000000
+        body: readFiletoStream(params.pInputFile)
       });
 
       logger.log('http', `Response status: ${response.status}`);
 
-      logger.log('verbose', 'Files has been set to queue');
-      logger.log('debug', `Response:\n${JSON.stringify(response.data.value)}`);
+      if (response.status === httpStatus.OK) {
+        const result = await response.json();
+        logger.log('verbose', 'Files has been set to queue');
+        logger.log('debug', `Response:\n${JSON.stringify(result.value)}`);
+        logger.log('info', `Waiting for status updates to ${result.value.correlationId}`);
+        logger.log('verbose', `${result.value.queueItemState || 'Waiting...'} modification time: ${result.value.modificationTime} , Ids handled: ${result.value.handledIds.length || 0}`);
 
-      const result = response.data.value;
-      logger.log('info', `Waiting for status updates to ${result.correlationId}`);
+        return pollResult(result.value.correlationId);
+      }
 
-      logger.log('verbose', `${result.queueItemState || 'Waiting...'} modification time: ${result.modificationTime} , Ids handled: ${result.handledIds.length}`);
-      return pollResult(result.correlationId);
+      throw new ApiError(response.status, await response.text());
     } catch (err) {
       logError(err);
       return process.exit(1); // eslint-disable-line no-process-exit
@@ -71,43 +72,57 @@ export default function () {
         await setTimeoutPromise(3000);
         return pollResult(correlationId, modificationTime);
       }
+      const query = urlQueryParams({id: correlationId});
+      const url = new URL(`${restApiUrl}bulk/?${query}`);
 
-      const response = await axios({
+      logger.log('silly', url.toString());
+
+      const response = await fetch(url, {
         method: 'get',
-        baseURL: REST_API_URL,
-        url: `bulk/?id=${correlationId}`,
-        headers: {'content-type': 'application/alephseq'},
-        responseType: 'json',
-        auth: {
-          username: REST_API_USERNAME,
-          password: REST_API_PASSWORD
+        headers: {
+          'Content-Type': 'application/alephseq',
+          'Authorization': `Basic ${Buffer.from(`${restApiUsername}:${restApiPassword}`).toString('base64')}`,
+          'Accept': 'application/json'
         }
       });
 
-      if (response.data === []) { // eslint-disable-line functional/no-conditional-statement
-        throw new ApiError(404, `Queue item ${correlationId} not found!`);
+      logger.log('silly', `Response status: ${response.status}`);
+
+      if (response.status === httpStatus.OK) {
+        const [result] = await response.json();
+
+        if (result === undefined) { // eslint-disable-line functional/no-conditional-statement
+          throw new ApiError(404, `Queue item ${correlationId} not found!`);
+        }
+
+        if (result.queueItemState === QUEUE_ITEM_STATE.ERROR) { // eslint-disable-line functional/no-conditional-statement
+          throw new ApiError(500, `Process has failed ${JSON.stringify(result)}`);
+        }
+
+        if (result.queueItemState === QUEUE_ITEM_STATE.DONE) {
+          logger.log('info', `Request has been handled:\n${JSON.stringify(result)}`);
+          return process.exit(0); // eslint-disable-line no-process-exit
+        }
+
+        if (modificationTime === result.modificationTime) {
+          return pollResult(correlationId, modificationTime, true);
+        }
+
+        logger.log('verbose', `${result.queueItemState || 'Waiting...'} modification time: ${result.modificationTime} , Ids handled: ${result.handledIds.length}`);
+        return pollResult(correlationId, result.modificationTime, true);
       }
 
-      const [result] = response.data;
-
-      if (result.queueItemState === QUEUE_ITEM_STATE.ERROR) { // eslint-disable-line functional/no-conditional-statement
-        throw new ApiError(500, `Process has failed ${JSON.stringify(result)}`);
-      }
-
-      if (result.queueItemState === QUEUE_ITEM_STATE.DONE) {
-        logger.log('info', `Request has been handled:\n${JSON.stringify(result)}`);
-        return process.exit(0); // eslint-disable-line no-process-exit
-      }
-
-      if (modificationTime === result.modificationTime) {
-        return pollResult(correlationId, modificationTime, true);
-      }
-
-      logger.log('verbose', `${result.queueItemState || 'Waiting...'} modification time: ${result.modificationTime} , Ids handled: ${result.handledIds.length}`);
-      return pollResult(correlationId, result.modificationTime, true);
+      throw new ApiError(response.status, await response.text());
     } catch (error) {
       logError(error);
       return process.exit(1); // eslint-disable-line no-process-exit
     }
+  }
+
+  function urlQueryParams(params) {
+    const esc = encodeURIComponent;
+    return Object.keys(params)
+      .map(k => `${k}=${esc(params[k])}`)
+      .join('&');
   }
 }

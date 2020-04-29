@@ -42,7 +42,7 @@ async function run() {
 
   registerInterruptionHandlers();
 
-  const server = await startApp({...config});
+  const server = await startApp(config);
 
   logger.log('info', 'Melinda record load rest api bridge');
   if (rawPArgs === '' && correlationId !== null) {
