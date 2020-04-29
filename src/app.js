@@ -18,7 +18,7 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}) {
       logger.log('verbose', 'Settings loaded');
       logger.log('debug', `Settings:\n${JSON.stringify(params)}`);
 
-      const query = urlQueryParams(params);
+      const query = new URLSearchParams(params);
       const urlEnd = params.pOldNew === 'OLD' ? 'bulk/update?' : 'bulk/create?';
       const url = new URL(urlEnd + query, restApiUrl);
 
@@ -72,7 +72,7 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}) {
         await setTimeoutPromise(3000);
         return pollResult(correlationId, modificationTime);
       }
-      const query = urlQueryParams({id: correlationId});
+      const query = new URLSearchParams({id: correlationId});
       const url = new URL(`${restApiUrl}bulk/?${query}`);
 
       logger.log('silly', url.toString());
@@ -117,12 +117,5 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}) {
       logError(error);
       return process.exit(1); // eslint-disable-line no-process-exit
     }
-  }
-
-  function urlQueryParams(params) {
-    const esc = encodeURIComponent;
-    return Object.keys(params)
-      .map(k => `${k}=${esc(params[k])}`)
-      .join('&');
   }
 }
