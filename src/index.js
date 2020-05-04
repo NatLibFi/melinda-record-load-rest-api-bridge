@@ -25,6 +25,7 @@
 * for the JavaScript code in this file.
 *
 */
+/* eslint-disable no-process-exit */
 
 import {Error as ApiError, Utils} from '@natlibfi/melinda-commons';
 import * as config from './config';
@@ -84,7 +85,7 @@ async function run() {
         pOldNew: pArgs[4]
       };
 
-      return server.newProcess(params);
+      return server.newProcess(params, handleUnexpectedAppError);
     }
 
     throw new ApiError(400, 'Bad arguments');
@@ -92,6 +93,10 @@ async function run() {
 
   logger.log('info', 'To run new process args 2 "p_active_library,p_input_file,p_reject_file,p_log_file,p_old_new"');
   logger.log('info', 'To track runnig process args 2 "" & args 3 <process id>');
+
+  function handleUnexpectedAppError(message) {
+    handleTermination({code: 1, message});
+  }
 
   function registerInterruptionHandlers() {
     process
@@ -104,19 +109,23 @@ async function run() {
         handleTermination({code: 1, message: stack});
       });
 
-    function handleTermination({code = 0, message = false}) {
-      logMessage(message);
-      process.exit(code); // eslint-disable-line no-process-exit
-    }
-
     function handleSignal(signal) {
       handleTermination({code: 1, message: `Received ${signal}`});
     }
+  }
 
-    function logMessage(message) {
-      if (message) {
-        return logError(message);
-      }
+  function handleTermination({code = 0, message = false}) {
+    if (message) { // eslint-disable-line functional/no-conditional-statement
+      logMessage(message);
+      process.exit(code);
+    }
+
+    process.exit(code);
+  }
+
+  function logMessage(message) {
+    if (message) {
+      return logError(message);
     }
   }
 }

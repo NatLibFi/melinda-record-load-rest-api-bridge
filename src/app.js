@@ -7,7 +7,7 @@ import {promisify} from 'util';
 
 const setTimeoutPromise = promisify(setTimeout);
 
-export default function ({restApiPassword, restApiUsername, restApiUrl}) {
+export default function ({restApiPassword, restApiUsername, restApiUrl}, handleUnexpectedAppError) {
   const {createLogger} = Utils;
   const logger = createLogger();
 
@@ -49,7 +49,7 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}) {
       throw new ApiError(response.status, await response.text());
     } catch (err) {
       logError(err);
-      return process.exit(1); // eslint-disable-line no-process-exit
+      return handleUnexpectedAppError('Unexpected error in newProcess');
     }
 
     function readFiletoStream(pInputFile) {
@@ -101,7 +101,7 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}) {
 
         if (result.queueItemState === QUEUE_ITEM_STATE.DONE) {
           logger.log('info', `Request has been handled:\n${JSON.stringify(result)}`);
-          return process.exit(0); // eslint-disable-line no-process-exit
+          return handleUnexpectedAppError(false);
         }
 
         if (modificationTime === result.modificationTime) {
@@ -115,7 +115,7 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}) {
       throw new ApiError(response.status, await response.text());
     } catch (error) {
       logError(error);
-      return process.exit(1); // eslint-disable-line no-process-exit
+      return handleUnexpectedAppError('Unexpected error in pollResults');
     }
   }
 }
