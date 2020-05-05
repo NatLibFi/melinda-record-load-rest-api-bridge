@@ -7,41 +7,40 @@ platform:
   arch: amd64
 
 steps:
-- name: deploy
+- name: Generate-docker-tags
+  image: quay.io/natlibfi/drone-gen-tags
+- name: Permissions
+  image: busybox
+  commands:
+  - chmod -R o+w /drone/src
+- name: Install-and-test
+  image: node:12
+  user: node
+  commands:
+  - npm install && npm run test
+- name: Build
+  image: node:12
+  user: node
+  commands:
+  - npm install --production && npm run build
+- name: Deploy
   image: quay.io/natlibfi/drone-plugin-scp
   settings:
     host:
-      from_secret: host_production
+      from_secret: host_prod
     username:
-      from_secret: username_production
+      from_secret: username_prod
     key:
-      from_secret: ssh_key_production
+      from_secret: ssh_key_prod
     rm: true
     source:
     - "README.md"
-    - "package.json"
-    - "src/*"
+    - "dist/*"
+    - "node_modules/*"
     target: /exlibris/linnea/melinda-record-load-rest-api-bridge/app/
-- name: npm install
-  image: quay.io/natlibfi/drone-plugin-ssh
-  settings:
-    host:
-      from_secret: host_production
-    username:
-      from_secret: username_production
-    key:
-      from_secret: ssh_key_production
-    script:
-    - "cd /exlibris/linnea/melinda-record-load-rest-api-bridge/app/"
-    - "npm install"
-    - "npm run build"
-
 trigger:
   branch:
   - master
-  event:
-  - push
-
 ---
 kind: pipeline
 name: test
@@ -51,7 +50,23 @@ platform:
   arch: amd64
 
 steps:
-- name: deploy
+- name: Generate-docker-tags
+  image: quay.io/natlibfi/drone-gen-tags
+- name: Permissions
+  image: busybox
+  commands:
+  - chmod -R o+w /drone/src
+- name: Install-and-test
+  image: node:12
+  user: node
+  commands:
+  - npm install && npm run test
+- name: Build
+  image: node:12
+  user: node
+  commands:
+  - npm install --production && npm run build
+- name: Deploy
   image: quay.io/natlibfi/drone-plugin-scp
   settings:
     host:
@@ -63,28 +78,24 @@ steps:
     rm: true
     source:
     - "README.md"
-    - "package.json"
-    - "src/*"
+    - "dist/*"
+    - "node_modules/*"
     target: /exlibris/linnea/melinda-record-load-rest-api-bridge/app/
-- name: npm install
-  image: quay.io/natlibfi/drone-plugin-ssh
-  settings:
-    host:
-      from_secret: host_test
-    username:
-      from_secret: username_test
-    key:
-      from_secret: ssh_key_test
-    script:
-    - "cd /exlibris/linnea/melinda-record-load-rest-api-bridge/app/"
-    - "npm install"
-    - "npm run build"
-
 trigger:
   branch:
   - test
-  event:
-  - push
+---
+  kind: secret
+  name: host_prod
+  data: '-'
+---
+  kind: secret
+  name: username_prod
+  data: '-'
+---
+  kind: secret
+  name: ssh_key_prod
+  data: '-'
 ---
   kind: secret
   name: host_test
@@ -97,5 +108,4 @@ trigger:
   kind: secret
   name: ssh_key_test
   data: 2oNbEXydn7LXKpRlTHz3b5xXONaGzrb36JNbBsNJhbrpkA7Ije4CRiHr/woFewJNNAD0Xi7db+6owowWyXlLogME8n0s5DlKjFE283G4cORuffair6Yxno8l9wajh+UL7ataDruXfaEB8bvu7guCzrZ6bIDH5Kc+MIVMmDVMQRkOyDkvQJXWWlgWvSdGcz+pE5Ev0or8S/4EhFhDdgZiAeBPfvSH9hpt0eAvgTmMrjpSuWyzrIdWHV0u+vm5xSS0ZhB84tDS1sPlslQkRmjjry5M6K0iwHy+ApExEAdNTYthAauNj2YSxgSoB7Ec1tFFN9coypwyMUXCLNwVeJJ14fjdFLne3l7Un7S0XZFzMDqe6dR09+4GVFBySkQ2IzkPSEDgyBOxWSNo76DPF1j4jRDRk3al0ryj7O5P/g9t25hIaZoNaEdDY8Vf5G6bjrGNqD42oYmM0v93phpgQtJcsG5XajYElOEZwwAjUVv/bscmc5zc6ULc0Vc+dYuWfTpCocPzZV11psBNNaj8VO8+gAP2Ga1add5oALV6XT7gEJDrf+BoD/5wzVkoMF3m88vHfG02vu4luzT0GnFaf1gCHEnUG0bAvT3GZS0K+0zBRYXfnigSQu72+HVFpPxUDS6o/oLoZkIUTxj4bWcMIaOG+I6NLdxej7VjkAR+hwNf8vYfQOn5it3LDNcN3e9NU3UTQsEr2rZf8G7EquWL/kv6+62FbRvEVsmgZsi4qzYYMfgnvr4yjOVvMCLxcqgkAKpFz4sTi5tMD23sDuCBe9Mkb6TO77Jnf9tu3Qh4NS2V2bqYnyZ/XrfrHQNrq9uCbqZC+OSBvYpOPUrILbQaytCswR66XHrKJ1VbCcM3ZOgJ5nmJSYnxdHhRdSp/EqJAyu58fJ3RM1X/k136H00CErelujJGFz1ShTS2457HbLczjrAi0VG1rs/O92eeV8wn3onAJmy8Sbhk3icy+8gduFv1yG4p+2luKjIJcIGvV2CzNK4GFv5EONrVaxSu2Ty+387y1ci1AeZEcT52qenuYLYTORY3cUA9T95vQesFrtKVzosRQC/nI2IiOtcumuLNCeLvxnk9h4ZJdTqRnGEFSsDGdTwOLgDV7JcXBoRHlt8rZRfdTQ8qw3whvkpPoFeKQJoIcq5FqyKs9ScNesLNCznHE03XdY5E06yAgO9xIJdGtZ8D8mgafrfQuJmZNbIJExZCg5n9MODyQQDTmUQ4/5E5ZD8u5K46t8Dem9ZZZbrkHYvU+16c6lBsix9z7Uzz3bVwfvk7RrVRDH09M4aSPc2bhctXz70hqSVzMeCBpklswBpupEuv3OT0NM1pg9MyGOirqHQQZIPVHQ1aI9zZVx0GbWErscZZTbb/Bpm3KiAU+X52qwpi2Oi6t7qMYwZ3zab5DDrsQkRdVaoNgZno7CXQ2zF46NufqfT8p98A69O0k/bs0D55CzmFyuZWa6Y0zKtFTlMRiuCv3wKwVSb9buLPlEd2DjNUtPHflJmXkgtBmcuCZCRVQHW8i1uUca2MSzOmGXUjFN3w7QcldgkrvS85YeJDV2lXO1ZrL+ZsOhZDeDzmg1FHa7odpCIir9ikyOYl858JJ+EJcdw+vyt+MqBNCQqUV+zuxQlrlQqwUfwuqT4LolnQelFjm/Rkc6FK47f8OlRnxPzXbrrVvDvGx0A8OhKP1JTMCNW31XOVptHd86LbJ22nVYLED9f75cnKNfY+ulOAFPJCYZhrThfOxfP3KP/yZBEpyoXvO9XRr8S3FEIecyKvlWe71BoJTRUWWWHdUTJSkby9zN7cYYiLFShFjDAD5eOxNBTcwWDtd5OPo2YgmcP6YQ6yGNvcrn1i/CgNPgIBU1Hqg+c0/uFodn24i2UEF/D2vXiCS59miQC5qcSQ1sIHWRM/4WDS8SO0YD+B69tifAp3bxGlvDrrPI8/+Iq77i9+wf32JCLi0V4Db4D79LRApsORhUYt5G6Bhbqs8xTZvg9I/tYlTW6kFtOLrbXAbJ/nVOq4rWi3x3hrirAy/joMFcX6I9xytAmtvJ6L210/jM6zkxwEIJFS2d8tm0swtYNikTe9Rj24Wrxy/RyQ9sOzFVbezHLEgJoGQ+tiKrz3bviBW3FxJWa+6/71fv0XlJGsTBNQh89gfYHqjMGZux/pGvZJth6+K6bC4QSRb6kHzaCOokvcONtoslhkFs7ydoL896lrAOqLku3mxUnpeahNLgufQlQah1nqJkuVoZfriKzEfQFa3NL6Rfgw3PE++J4P+iM=
-
 ...
