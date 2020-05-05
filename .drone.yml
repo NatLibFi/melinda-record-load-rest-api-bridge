@@ -35,6 +35,7 @@ steps:
     rm: true
     source:
     - "README.md"
+    - "package.json"
     - "dist/*"
     - "node_modules/*"
     target: /exlibris/linnea/melinda-record-load-rest-api-bridge/app/
@@ -78,6 +79,7 @@ steps:
     rm: true
     source:
     - "README.md"
+    - "package.json"
     - "dist/*"
     - "node_modules/*"
     target: /exlibris/linnea/melinda-record-load-rest-api-bridge/app/
