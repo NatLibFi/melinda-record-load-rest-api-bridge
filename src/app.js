@@ -101,7 +101,7 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}, handleU
 
         if (result.queueItemState === QUEUE_ITEM_STATE.DONE) {
           logger.log('info', `Request has been handled:\n${JSON.stringify(result)}`);
-          return handleUnexpectedAppError(false);
+          return;
         }
 
         if (modificationTime === result.modificationTime) {
