@@ -115,11 +115,7 @@ async function run() {
   }
 
   function handleTermination({code = 0, message = false}) {
-    if (message) { // eslint-disable-line functional/no-conditional-statement
-      logMessage(message);
-      process.exit(code);
-    }
-
+    logMessage(message);
     process.exit(code);
   }
 
