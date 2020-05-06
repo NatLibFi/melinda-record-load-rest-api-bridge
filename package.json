@@ -27,15 +27,15 @@
     "build": "babel src --source-maps --copy-files --delete-dir-on-start --out-dir=dist"
   },
   "dependencies": {
-    "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.9.6",
-    "@babel/preset-env": "^7.9.6",
     "@natlibfi/melinda-commons": "^8.0.0",
     "@natlibfi/melinda-rest-api-commons": "git+https://github.com/NatLibFi/melinda-rest-api-commons.git#melkehitys-1054",
     "http-status": "^1.4.2",
     "node-fetch": "2.6.0"
   },
   "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
     "@babel/node": "^7.8.7",
     "@babel/register": "^7.9.0",
     "eslint": "^6.8.0",

@@ -13,16 +13,15 @@ steps:
   image: busybox
   commands:
   - chmod -R o+w /drone/src
-- name: Install-and-test
+- name: Test-build-install
   image: node:12
   user: node
   commands:
-  - npm install && npm run test && rm -rf node_modules/
-- name: Build
-  image: node:12
-  user: node
-  commands:
-  - npm install --production && npm run build
+  - npm install
+  - npm run test
+  - npm run build
+  - rm -rf node_modules/
+  - npm install --production
 - name: Deploy
   image: quay.io/natlibfi/drone-plugin-scp
   settings:
@@ -57,16 +56,15 @@ steps:
   image: busybox
   commands:
   - chmod -R o+w /drone/src
-- name: Install-and-test
+- name: Test-build-install
   image: node:12
   user: node
   commands:
-  - npm install && npm run test && rm -rf node_modules/
-- name: Build
-  image: node:12
-  user: node
-  commands:
-  - npm install --production && npm run build
+  - npm install
+  - npm run test
+  - npm run build
+  - rm -rf node_modules/
+  - npm install --production
 - name: Deploy
   image: quay.io/natlibfi/drone-plugin-scp
   settings:
