@@ -17,7 +17,7 @@ steps:
   image: node:12
   user: node
   commands:
-  - npm install && npm run test
+  - npm install && npm run test && rm -rf node_modules/
 - name: Build
   image: node:12
   user: node
@@ -61,7 +61,7 @@ steps:
   image: node:12
   user: node
   commands:
-  - npm install && npm run test
+  - npm install && npm run test && rm -rf node_modules/
 - name: Build
   image: node:12
   user: node
