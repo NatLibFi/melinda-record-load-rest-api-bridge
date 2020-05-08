@@ -19,8 +19,7 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}, handleU
       logger.log('debug', `Settings:\n${JSON.stringify(params)}`);
 
       const query = new URLSearchParams(params);
-      const urlEnd = params.pOldNew === 'OLD' ? 'bulk/update?' : 'bulk/create?';
-      const url = new URL(urlEnd + query, restApiUrl);
+      const url = new URL(`${restApiUrl}bulk/?${query}`);
 
       logger.log('verbose', 'Uploading file to queue');
       logger.log('debug', url.toString());
@@ -100,8 +99,7 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}, handleU
         }
 
         if (result.queueItemState === QUEUE_ITEM_STATE.DONE) {
-          logger.log('info', `Request has been handled:\n${JSON.stringify(result)}`);
-          return;
+          return logger.log('info', `Request has been handled:\n${JSON.stringify(result)}`);
         }
 
         if (modificationTime === result.modificationTime) {
@@ -114,8 +112,7 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}, handleU
 
       throw new ApiError(response.status, await response.text());
     } catch (error) {
-      logError(error);
-      return handleUnexpectedAppError('Unexpected error in pollResults');
+      return handleUnexpectedAppError(error.payload);
     }
   }
 }

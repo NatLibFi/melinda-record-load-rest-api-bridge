@@ -27,10 +27,11 @@
 */
 /* eslint-disable no-process-exit */
 
+import httpStatus from 'http-status';
 import {Error as ApiError, Utils} from '@natlibfi/melinda-commons';
+import {logError} from '@natlibfi/melinda-rest-api-commons';
 import * as config from './config';
 import startApp from './app';
-import {logError} from '@natlibfi/melinda-rest-api-commons';
 
 run();
 
@@ -38,22 +39,25 @@ async function run() {
   const {createLogger} = Utils;
   const logger = createLogger();
   const {handleInterrupt} = Utils;
-  const rawPArgs = process.argv[2] || '';
-  const correlationId = process.argv[3] || null;
+  const [,, rawPArgs] = process.argv;
 
   registerInterruptionHandlers();
 
-  const server = await startApp(config);
+  const server = await startApp(config, handleUnexpectedAppError);
 
   logger.log('info', 'Melinda record load rest api bridge');
-  if (rawPArgs === '' && correlationId !== null) {
-    logger.log('info', `Start track process status of ${correlationId}!`);
-    return server.pollResult(correlationId);
+  if (process.argv[2] === undefined || process.argv[2] === '--help') {
+    return logger.log('info', `Help:\nTo run new process give 2nd argument as 'p_active_library,p_input_file,p_reject_file,p_log_file,p_old_new'\nParams "p_active_library" and "p_old_new" are required\nParams "p_input_file" and "p_reject_file" are optional\nFor example: "node dist/index.js FIN01,,,OLD"\nTo track runnig process give process id as 2nd argument\nFor example: "node dist/index.js 00000000-0000-0000-0000-00000000000"`);
   }
 
-  if (rawPArgs !== '') {
+  const pArgs = rawPArgs.split(',');
+  if (pArgs.length === 1) {
+    logger.log('info', `Start track process status of ${pArgs[0]}!`);
+    return server.pollResult(pArgs[0]);
+  }
+
+  if (pArgs.length > 1) {
     logger.log('info', 'Start new bulk loader process!');
-    const pArgs = rawPArgs.split(',');
 
     /* P_manage_18 arguments (23_3)
       [
@@ -75,24 +79,22 @@ async function run() {
       "p_redirection_field"   // 15
       ]
     */
-    if (pArgs[0] && pArgs[1] && pArgs[2] && pArgs[3] && pArgs[4]) {
+    if (pArgs[0] && pArgs[1] && pArgs[4]) {
       // Turn params to camelCase and ditching parametters after 5th
+      // Params 2 and 3 are optional
       const params = {
         pActiveLibrary: pArgs[0],
         pInputFile: pArgs[1],
-        pRejectFile: pArgs[2],
-        pLogFile: pArgs[3],
+        pRejectFile: pArgs[2] || null,
+        pLogFile: pArgs[3] || null,
         pOldNew: pArgs[4]
       };
 
-      return server.newProcess(params, handleUnexpectedAppError);
+      return server.newProcess(params);
     }
 
-    throw new ApiError(400, 'Bad arguments');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Bad arguments');
   }
-
-  logger.log('info', 'To run new process args 2 "p_active_library,p_input_file,p_reject_file,p_log_file,p_old_new"');
-  logger.log('info', 'To track runnig process args 2 "" & args 3 <process id>');
 
   function handleUnexpectedAppError(message) {
     handleTermination({code: 1, message});

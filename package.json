@@ -24,11 +24,11 @@
     "check-deps": "npm-check;exit 0",
     "test": "npm run lint",
     "dev": "NODE_ENV=development nodemon",
-    "build": "babel src --source-maps --copy-files --delete-dir-on-start --out-dir=dist"
+    "build": "babel src --source-maps --copy-files --delete-dir-on-start --out-dir=dist --minified --no-comments"
   },
   "dependencies": {
     "@natlibfi/melinda-commons": "^8.0.0",
-    "@natlibfi/melinda-rest-api-commons": "git+https://github.com/NatLibFi/melinda-rest-api-commons.git#melkehitys-1054",
+    "@natlibfi/melinda-rest-api-commons": ">=1.0.0-alpha.1",
     "http-status": "^1.4.2",
     "node-fetch": "2.6.0"
   },
