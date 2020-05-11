@@ -1,143 +1,118 @@
 import fs from 'fs';
-import axios from 'axios';
-import ProcessError from '@natlibfi/melinda-commons';
-import {mongoFactory, QUEUE_ITEM_STATE} from '@natlibfi/melinda-rest-api-commons';
+import fetch from 'node-fetch';
+import {Error as ApiError, Utils} from '@natlibfi/melinda-commons';
+import {logError, QUEUE_ITEM_STATE} from '@natlibfi/melinda-rest-api-commons';
+import httpStatus from 'http-status';
 import {promisify} from 'util';
-import {REST_API_PASSWORD, REST_API_USERNAME, REST_API_URL, MONGO_URI, RECORD_LOAD_API_RESULT_FILE_PATH} from './config';
-import ora from 'ora';
 
 const setTimeoutPromise = promisify(setTimeout);
 
-run();
+export default function ({restApiPassword, restApiUsername, restApiUrl}, handleUnexpectedAppError) {
+  const {createLogger} = Utils;
+  const logger = createLogger();
 
-async function run() {
-	const mongoOperator = await mongoFactory(MONGO_URI);
-	let pollParams;
-	let currentQueueItemState;
-	let lastChangeTime;
-	const spinner = ora('Start bulk loader!').start();
+  return {newProcess, pollResult};
 
-	const args = process.argv[2].split(',');
-	/* P_manage_18 arguments (23_3)
-    [
-        "p_active_library",     // 0
-        "p_input_file",         // 1
-        "p_reject_file",        // 2
-        "p_log_file",           // 3
-        "p_old_new",            // 4
-        "p_fix_type",           // 5
-        "p_check_references",   // 6
-        "p_update_f",           // 7
-        "p_update_type",        // 8
-        "p_update_mode",        // 9
-        "p_char_conv",          // 10
-        "p_merge_type",         // 11
-        "p_cataloger_in",       // 12
-        "p_cataloger_level_x",  // 13
-        "p_z07_priority_year",  // 14
-        "p_redirection_field"   // 15
-    ]
-    */
+  async function newProcess(params) {
+    try {
+      logger.log('verbose', 'Settings loaded');
+      logger.log('debug', `Settings:\n${JSON.stringify(params)}`);
 
-	// For the test
-	// args[1] = '/file/location/here/test.seq';
-	// args[3] = 'test.syslog';
-	// args[12] = 'test000';
+      const query = new URLSearchParams(params);
+      const url = new URL(`${restApiUrl}bulk/?${query}`);
 
-	try {
-		const params = {
-			library: args[0],
-			inputFile: args[1],
-			rejectedFile: null,
-			resultFile: args[3],
-			method: args[4],
-			fixRoutine: args[5],
-			indexing: args[7],
-			updateAction: args[8],
-			mode: args[9],
-			charConversion: args[10],
-			mergeRoutine: args[11],
-			cataloger: args[12], // Replace with REST_API_USERNAME? To avoid miss usage
-			catalogerLevel: args[13],
-			indexingPriority: args[14]
-		};
-		spinner.start('Loaded parmas');
-		// Console.log(params);
+      logger.log('verbose', 'Uploading file to queue');
+      logger.log('debug', url.toString());
+      const response = await fetch(url, {
+        method: 'post',
+        headers: {
+          'content-type': 'application/alephseq',
+          'Authorization': `Basic ${Buffer.from(`${restApiUsername}:${restApiPassword}`).toString('base64')}`,
+          'Accept': 'application/json'
+        },
+        body: readFiletoStream(params.pInputFile)
+      });
 
-		// Check if the file is readable.
-		spinner.start('Checking file');
-		try {
-			fs.accessSync(params.inputFile, fs.constants.R_OK);
-			// Console.log(`${file} is readable`);
-		} catch (err) {
-			console.log(err);
-			throw new ProcessError(404, 'Inputfile not found');
-		}
+      logger.log('http', `Response status: ${response.status}`);
 
-		const stream = fs.createReadStream(params.inputFile);
+      if (response.status === httpStatus.OK) {
+        const result = await response.json();
+        logger.log('verbose', 'Files has been set to queue');
+        logger.log('debug', `Response:\n${JSON.stringify(result.value)}`);
+        logger.log('info', `Waiting for status updates to ${result.value.correlationId}`);
+        logger.log('verbose', `${result.value.queueItemState || 'Waiting...'} modification time: ${result.value.modificationTime} , Ids handled: ${result.value.handledIds.length || 0}`);
 
-		spinner.start('Uploading file to queue');
-		const response = await axios({
-			method: 'post',
-			baseURL: REST_API_URL,
-			url: (params.method === 'OLD') ? 'bulk/update' : 'bulk/create',
-			headers: {'Content-Type': 'application/alephseq'},
-			params,
-			data: stream,
-			auth: {
-				username: REST_API_USERNAME,
-				password: REST_API_PASSWORD
-			}
-		});
+        return pollResult(result.value.correlationId);
+      }
 
-		spinner.succeed('Files has been set to queue');
-		console.log(response.data);
+      throw new ApiError(response.status, await response.text());
+    } catch (err) {
+      logError(err);
+      return handleUnexpectedAppError('Unexpected error in newProcess');
+    }
 
-		// Backup location for correlationId if this software shutsdown
-		fs.writeFileSync(RECORD_LOAD_API_RESULT_FILE_PATH + args[3] + '.correlationId', response.data.correlationId);
+    function readFiletoStream(pInputFile) {
+      // Check if the file is readable.
+      logger.log('verbose', 'Checking file');
+      try {
+        fs.accessSync(pInputFile, fs.constants.R_OK);
+        logger.log('debug', `${pInputFile} is readable`);
+      } catch (err) {
+        throw new ApiError(404, `Inputfile not found or not accessable at ${pInputFile}`);
+      }
 
-		pollParams = {
-			correlationId: response.data.correlationId,
-			cataloger: response.data.cataloger,
-			operation: response.data.operation
-		};
+      return fs.createReadStream(params.pInputFile);
+    }
+  }
 
-		console.log('Waiting for status updates');
+  async function pollResult(correlationId, modificationTime, wait = false) {
+    try {
+      if (wait) {
+        await setTimeoutPromise(3000);
+        return pollResult(correlationId, modificationTime);
+      }
+      const query = new URLSearchParams({id: correlationId});
+      const url = new URL(`${restApiUrl}bulk/?${query}`);
 
-		currentQueueItemState = response.data.queueItemState;
-		lastChangeTime = response.data.modificationTime;
-		await pollResult();
-	} catch (err) {
-		console.log('error', err);
-		process.exit(0);
-	}
+      logger.log('silly', url.toString());
 
-	async function pollResult(wait) {
-		if (wait) {
-			await setTimeoutPromise(200);
-		}
+      const response = await fetch(url, {
+        method: 'get',
+        headers: {
+          'Content-Type': 'application/alephseq',
+          'Authorization': `Basic ${Buffer.from(`${restApiUsername}:${restApiPassword}`).toString('base64')}`,
+          'Accept': 'application/json'
+        }
+      });
 
-		const result = await mongoOperator.query(pollParams);
-		if (result[0].queueItemState !== currentQueueItemState || result[0].modificationTime !== lastChangeTime) {
-			currentQueueItemState = result[0].queueItemState;
-			lastChangeTime = result[0].modificationTime;
-			spinner.start(`${currentQueueItemState} modification time: ${lastChangeTime} , Ids handled: ${result[0].handledIds.length}`);
-		}
+      logger.log('silly', `Response status: ${response.status}`);
 
-		if (result[0].queueItemState.startsWith(QUEUE_ITEM_STATE.ERROR)) {
-			spinner.fail('Request has failed');
-			console.log(result[0]);
-			process.exit(0);
-		}
+      if (response.status === httpStatus.OK) {
+        const [result] = await response.json();
 
-		if (result[0].queueItemState === QUEUE_ITEM_STATE.DONE) {
-			spinner.succeed('Request has been handled');
-			console.log(result[0]);
-			fs.writeFileSync(RECORD_LOAD_API_RESULT_FILE_PATH + args[3], result[0].handledIds.map(id => id + args[0]).join('\n'));
-			fs.unlinkSync(RECORD_LOAD_API_RESULT_FILE_PATH + args[3] + '.correlationId');
-			process.exit(0);
-		} else {
-			pollResult(true);
-		}
-	}
+        if (result === undefined) { // eslint-disable-line functional/no-conditional-statement
+          throw new ApiError(404, `Queue item ${correlationId} not found!`);
+        }
+
+        if (result.queueItemState === QUEUE_ITEM_STATE.ERROR) { // eslint-disable-line functional/no-conditional-statement
+          throw new ApiError(500, `Process has failed ${JSON.stringify(result)}`);
+        }
+
+        if (result.queueItemState === QUEUE_ITEM_STATE.DONE) {
+          return logger.log('info', `Request has been handled:\n${JSON.stringify(result)}`);
+        }
+
+        if (modificationTime === result.modificationTime) {
+          return pollResult(correlationId, modificationTime, true);
+        }
+
+        logger.log('verbose', `${result.queueItemState || 'Waiting...'} modification time: ${result.modificationTime} , Ids handled: ${result.handledIds.length}`);
+        return pollResult(correlationId, result.modificationTime, true);
+      }
+
+      throw new ApiError(response.status, await response.text());
+    } catch (error) {
+      return handleUnexpectedAppError(error.payload);
+    }
+  }
 }

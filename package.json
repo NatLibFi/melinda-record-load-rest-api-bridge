@@ -14,40 +14,37 @@
   },
   "license": "AGPL-3.0+",
   "version": "1.0.0",
-  "main": "./src/app.js",
+  "main": "./dist/index.js",
   "engines": {
     "node": "12"
   },
   "scripts": {
-    "lint": "eslint ./src --fix",
-    "build": "babel src -d dist"
+    "lint": "eslint ./src",
+    "lint:dev": "eslint ./src --fix",
+    "check-deps": "npm-check;exit 0",
+    "test": "npm run lint",
+    "dev": "NODE_ENV=development nodemon",
+    "build": "babel src --source-maps --copy-files --delete-dir-on-start --out-dir=dist --minified --no-comments"
   },
   "dependencies": {
-    "@natlibfi/marc-record-serializers": "^5.0.1",
-    "@natlibfi/melinda-commons": "git+https://github.com/NatLibFi/melinda-commons-js.git#new-common-class-error",
-    "@natlibfi/melinda-rest-api-commons": "git+https://github.com/NatLibFi/melinda-rest-api-commons.git#dev",
-    "axios": "^0.19.2",
-    "ora": "^4.0.3"
-  },
-  "eslintConfig": {
-    "extends": [
-      "xo"
-    ],
-    "rules": {
-      "prefer-arrow-callback": [
-        "error"
-      ]
-    }
+    "@natlibfi/melinda-commons": "^8.0.0",
+    "@natlibfi/melinda-rest-api-commons": ">=1.0.0-alpha.1",
+    "http-status": "^1.4.2",
+    "node-fetch": "2.6.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.8.3",
-    "@babel/core": "^7.8.3",
-    "@babel/node": "^7.8.4",
-    "@babel/preset-env": "^7.8.4",
-    "@babel/register": "^7.8.3",
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
+    "@babel/node": "^7.8.7",
+    "@babel/register": "^7.9.0",
     "eslint": "^6.8.0",
-    "eslint-config-xo": "^0.27.2",
-    "eslint-plugin-import": "^2.20.0"
+    "@natlibfi/eslint-config-melinda-backend": ">1.0.0-alpha.1",
+    "nodemon": "^2.0.3",
+    "npm-check": "^5.9.2"
+  },
+  "eslintConfig": {
+    "extends": "@natlibfi/melinda-backend"
   },
   "babel": {
     "presets": [
@@ -60,5 +57,13 @@
         }
       ]
     ]
+  },
+  "nodemonConfig": {
+    "exec": "npm run lint:dev && npm run build",
+    "watch": [
+      "src/*"
+    ],
+    "ext": "js",
+    "delay": 2.5
   }
 }
