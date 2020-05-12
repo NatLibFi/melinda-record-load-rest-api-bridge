@@ -27,7 +27,7 @@
     "build": "babel src --source-maps --copy-files --delete-dir-on-start --out-dir=dist --minified --no-comments"
   },
   "dependencies": {
-    "@natlibfi/melinda-commons": "^8.0.0",
+    "@natlibfi/melinda-commons": "git+https://github.com/NatLibFi/melinda-commons-js.git#melkehitys-1541",
     "@natlibfi/melinda-rest-api-commons": ">=1.0.0-alpha.1",
     "http-status": "^1.4.2",
     "node-fetch": "2.6.0"
