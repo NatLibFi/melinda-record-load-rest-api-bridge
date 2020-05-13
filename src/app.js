@@ -38,7 +38,7 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}, handleU
         fs.accessSync(pInputFile, fs.constants.R_OK);
         logger.log('debug', `${pInputFile} is readable`);
       } catch (err) {
-        throw new ApiError(404, `Inputfile not found or not accessable at ${pInputFile}`);
+        throw new ApiError(httpStatus.NOT_FOUND, `Inputfile not found or not accessable at ${pInputFile}`);
       }
 
       return fs.createReadStream(params.pInputFile);
@@ -55,11 +55,11 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}, handleU
       const result = await client.getMetadata({id: correlationId});
 
       if (result === undefined) { // eslint-disable-line functional/no-conditional-statement
-        throw new ApiError(404, `Queue item ${correlationId} not found!`);
+        throw new ApiError(httpStatus.NOT_FOUND, `Queue item ${correlationId} not found!`);
       }
 
       if (result.queueItemState === QUEUE_ITEM_STATE.ERROR) { // eslint-disable-line functional/no-conditional-statement
-        throw new ApiError(500, `Process has failed ${JSON.stringify(result)}`);
+        throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, `Process has failed ${JSON.stringify(result)}`);
       }
 
       if (result.queueItemState === QUEUE_ITEM_STATE.DONE) {
