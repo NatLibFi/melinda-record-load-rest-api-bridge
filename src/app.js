@@ -19,13 +19,13 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}, handleU
       logger.log('debug', `Settings:\n${JSON.stringify(params)}`);
 
       logger.log('verbose', 'Uploading file to queue');
-      const result = await client.postBulk({params, contentType: 'application/alephseq', body: readFiletoStream(params.pInputFile)});
+      const data = await client.postBulk({params, contentType: 'application/alephseq', body: readFiletoStream(params.pInputFile)});
       logger.log('verbose', 'Files has been set to queue');
-      logger.log('debug', `Response:\n${JSON.stringify(result.value)}`);
-      logger.log('info', `Waiting for status updates to ${result.value.correlationId}`);
-      logger.log('verbose', `${result.value.queueItemState || 'Waiting...'} modification time: ${result.value.modificationTime} , Ids handled: ${result.value.handledIds.length || 0}`);
+      logger.log('silly', `Response:\n${JSON.stringify(data)}`);
+      logger.log('info', `Waiting for status updates to ${data.correlationId}`);
+      logger.log('verbose', `${data.queueItemState || 'Waiting...'} modification time: ${data.modificationTime} , Ids handled: ${data.handledIds.length || 0}`);
 
-      return pollResult(result.value.correlationId);
+      return pollResult(data.correlationId);
     } catch (err) {
       logError(err);
       return handleUnexpectedAppError('Unexpected error in newProcess');
@@ -52,26 +52,28 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}, handleU
         return pollResult(correlationId, modificationTime);
       }
 
-      const result = await client.getMetadata({id: correlationId});
+      const data = await client.getMetadata({id: correlationId});
 
-      if (result === undefined) { // eslint-disable-line functional/no-conditional-statement
+      if (data.length === 0) { // eslint-disable-line functional/no-conditional-statement
         throw new ApiError(httpStatus.NOT_FOUND, `Queue item ${correlationId} not found!`);
       }
 
-      if (result.queueItemState === QUEUE_ITEM_STATE.ERROR) { // eslint-disable-line functional/no-conditional-statement
-        throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, `Process has failed ${JSON.stringify(result)}`);
+      const [itemData] = data;
+
+      if (itemData.queueItemState === QUEUE_ITEM_STATE.ERROR) { // eslint-disable-line functional/no-conditional-statement
+        throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, `Process has failed ${JSON.stringify(itemData)}`);
       }
 
-      if (result.queueItemState === QUEUE_ITEM_STATE.DONE) {
-        return logger.log('info', `Request has been handled:\n${JSON.stringify(result)}`);
+      if (itemData.queueItemState === QUEUE_ITEM_STATE.DONE) {
+        return logger.log('info', `Request has been handled:\n${JSON.stringify(itemData)}`);
       }
 
-      if (modificationTime === result.modificationTime || modificationTime === null) {
-        return pollResult(correlationId, modificationTime, true);
+      if (modificationTime === data.modificationTime || modificationTime === null) {
+        return pollResult(correlationId, itemData.modificationTime, true);
       }
 
-      logger.log('verbose', `${result.queueItemState || 'Waiting...'} modification time: ${result.modificationTime} , Ids handled: ${result.handledIds.length}`);
-      return pollResult(correlationId, result.modificationTime, true);
+      logger.log('info', `${itemData.queueItemState || 'Waiting...'} modification time: ${itemData.modificationTime} , Ids handled: ${itemData.handledIds.length}`);
+      return pollResult(correlationId, itemData.modificationTime, true);
     } catch (error) {
       return handleUnexpectedAppError(error.payload);
     }
