@@ -19,7 +19,7 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}, handleU
       logger.log('debug', `Settings:\n${JSON.stringify(params)}`);
 
       logger.log('verbose', 'Uploading file to queue');
-      const data = await client.postBulk({params, contentType: 'application/alephseq', body: readFiletoStream(params.pInputFile)});
+      const data = await client.createBulk(readFiletoStream(params.pInputFile), 'application/alephseq', params);
       logger.log('verbose', 'Files has been set to queue');
       logger.log('silly', `Response:\n${JSON.stringify(data)}`);
       logger.log('info', `Waiting for status updates to ${data.correlationId}`);
@@ -52,7 +52,8 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}, handleU
         return pollResult(correlationId, modificationTime);
       }
 
-      const data = await client.getMetadata({id: correlationId});
+      const data = await client.readBulk(correlationId);
+      logger.log('silly', `Data: ${JSON.stringify(data)}`);
 
       if (data.length === 0) { // eslint-disable-line functional/no-conditional-statement
         throw new ApiError(httpStatus.NOT_FOUND, `Queue item ${correlationId} not found!`);
@@ -68,7 +69,7 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}, handleU
         return logger.log('info', `Request has been handled:\n${JSON.stringify(itemData)}`);
       }
 
-      if (modificationTime === data.modificationTime || modificationTime === null) {
+      if (modificationTime === itemData.modificationTime || modificationTime === null) {
         return pollResult(correlationId, itemData.modificationTime, true);
       }
 
