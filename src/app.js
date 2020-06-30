@@ -52,7 +52,7 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}, handleU
         return pollResult(correlationId, modificationTime);
       }
 
-      const data = await client.readBulk(correlationId);
+      const data = await client.readBulk({id: correlationId});
       logger.log('silly', `Data: ${JSON.stringify(data)}`);
 
       if (data.length === 0) { // eslint-disable-line functional/no-conditional-statement
