@@ -81,9 +81,6 @@ steps:
     - "dist/*"
     - "node_modules/*"
     target: /exlibris/linnea/melinda-record-load-rest-api-bridge/app/
-trigger:
-  branch:
-  - test
 ---
   kind: secret
   name: host_prod
