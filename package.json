@@ -27,19 +27,19 @@
     "build": "babel src --source-maps --copy-files --delete-dir-on-start --out-dir=dist --minified --no-comments"
   },
   "dependencies": {
-    "@natlibfi/melinda-commons": "^8.0.0",
-    "@natlibfi/melinda-rest-api-commons": ">=1.0.0-alpha.1",
+    "@natlibfi/melinda-commons": "git+https://github.com/NatLibFi/melinda-commons-js.git#melkehitys-1541",
+    "@natlibfi/melinda-rest-api-commons": ">=1.0.0-alpha.2",
     "http-status": "^1.4.2",
     "node-fetch": "2.6.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.9.6",
-    "@babel/preset-env": "^7.9.6",
-    "@babel/node": "^7.8.7",
-    "@babel/register": "^7.9.0",
+    "@babel/cli": "^7.10.1",
+    "@babel/core": "^7.10.1",
+    "@babel/node": "^7.10.1",
+    "@babel/preset-env": "^7.10.1",
+    "@babel/register": "^7.10.1",
+    "@natlibfi/eslint-config-melinda-backend": "^1.0.1",
     "eslint": "^6.8.0",
-    "@natlibfi/eslint-config-melinda-backend": ">1.0.0-alpha.1",
     "nodemon": "^2.0.3",
     "npm-check": "^5.9.2"
   },

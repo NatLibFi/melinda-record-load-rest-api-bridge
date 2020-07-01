@@ -32,6 +32,7 @@ import {Error as ApiError, Utils} from '@natlibfi/melinda-commons';
 import {logError} from '@natlibfi/melinda-rest-api-commons';
 import * as config from './config';
 import startApp from './app';
+import {handleArgsToParams} from './utils';
 
 run();
 
@@ -80,15 +81,9 @@ async function run() {
       ]
     */
     if (pArgs[0] && pArgs[1] && pArgs[4]) {
-      // Turn params to camelCase and ditching parametters after 5th
-      // Params 2 and 3 are optional
-      const params = {
-        pActiveLibrary: pArgs[0],
-        pInputFile: pArgs[1],
-        pRejectFile: pArgs[2] || null,
-        pLogFile: pArgs[3] || null,
-        pOldNew: pArgs[4]
-      };
+      // Turn params to camelCase and ditching parametters after 5th (exept 13th)
+      // Params 2, 3 and 12 are optional
+      const params = handleArgsToParams(pArgs);
 
       return server.newProcess(params);
     }
