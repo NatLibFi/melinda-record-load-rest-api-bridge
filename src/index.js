@@ -28,7 +28,8 @@
 /* eslint-disable no-process-exit */
 
 import httpStatus from 'http-status';
-import {Error as ApiError, Utils} from '@natlibfi/melinda-commons';
+import {Error as ApiError} from '@natlibfi/melinda-commons';
+import {createLogger, handleInterrupt} from '@natlibfi/melinda-backend-commons';
 import {logError} from '@natlibfi/melinda-rest-api-commons';
 import * as config from './config';
 import startApp from './app';
@@ -37,9 +38,7 @@ import {handleArgsToParams} from './utils';
 run();
 
 async function run() {
-  const {createLogger} = Utils;
   const logger = createLogger();
-  const {handleInterrupt} = Utils;
   const [,, rawPArgs] = process.argv;
 
   registerInterruptionHandlers();

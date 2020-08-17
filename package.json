@@ -27,8 +27,10 @@
     "build": "babel src --source-maps --copy-files --delete-dir-on-start --out-dir=dist --minified --no-comments"
   },
   "dependencies": {
-    "@natlibfi/melinda-commons": "git+https://github.com/NatLibFi/melinda-commons-js.git#melkehitys-1541",
-    "@natlibfi/melinda-rest-api-commons": ">=1.0.0-alpha.2",
+    "@natlibfi/melinda-commons": "^9.0.0",
+    "@natlibfi/melinda-backend-commons": "1.0.4",
+    "@natlibfi/melinda-rest-api-client": "file:../../melinda-rest-api-client-js/",
+    "@natlibfi/melinda-rest-api-commons": ">=1.0.0-alpha.4",
     "http-status": "^1.4.2",
     "node-fetch": "2.6.0"
   },
