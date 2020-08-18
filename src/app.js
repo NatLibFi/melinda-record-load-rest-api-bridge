@@ -1,5 +1,7 @@
 import fs from 'fs';
-import {Error as ApiError, Utils, createApiClient} from '@natlibfi/melinda-commons';
+import {Error as ApiError} from '@natlibfi/melinda-commons';
+import {createLogger} from '@natlibfi/melinda-backend-commons';
+import {createApiClient} from '@natlibfi/melinda-rest-api-client';
 import {logError, QUEUE_ITEM_STATE} from '@natlibfi/melinda-rest-api-commons';
 import httpStatus from 'http-status';
 import {promisify} from 'util';
@@ -7,7 +9,6 @@ import {promisify} from 'util';
 const setTimeoutPromise = promisify(setTimeout);
 
 export default function ({restApiPassword, restApiUsername, restApiUrl}, handleUnexpectedAppError) {
-  const {createLogger} = Utils;
   const logger = createLogger();
   const client = createApiClient({restApiPassword, restApiUsername, restApiUrl});
 
@@ -34,6 +35,7 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}, handleU
     function readFiletoStream(pInputFile) {
       // Check if the file is readable.
       logger.log('verbose', 'Checking file');
+      logger.log('debug', `Path: ${pInputFile}`);
       try {
         fs.accessSync(pInputFile, fs.constants.R_OK);
         logger.log('debug', `${pInputFile} is readable`);
