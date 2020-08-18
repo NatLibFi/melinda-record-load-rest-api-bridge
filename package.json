@@ -27,7 +27,8 @@
     "build": "babel src --source-maps --copy-files --delete-dir-on-start --out-dir=dist --minified --no-comments"
   },
   "dependencies": {
-    "@natlibfi/melinda-backend-commons": "1.0.4",
+    "@babel/runtime": "^7.11.2",
+    "@natlibfi/melinda-backend-commons": "^1.0.4",
     "@natlibfi/melinda-commons": "^9.0.0",
     "@natlibfi/melinda-rest-api-client-js": "^1.0.0-alpha.1",
     "@natlibfi/melinda-rest-api-commons": ">=1.0.0-alpha.4",
@@ -53,9 +54,7 @@
       [
         "@babel/preset-env",
         {
-          "targets": {
-            "node": "12"
-          }
+          "targets": "maintained node versions"
         }
       ]
     ]
