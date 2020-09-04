@@ -28,10 +28,10 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.11.2",
-    "@natlibfi/melinda-backend-commons": "^1.0.4",
-    "@natlibfi/melinda-commons": "^9.0.0",
-    "@natlibfi/melinda-rest-api-client-js": "^1.0.0-alpha.1",
-    "@natlibfi/melinda-rest-api-commons": ">=1.0.0-alpha.4",
+    "@natlibfi/melinda-backend-commons": "^1.0.6",
+    "@natlibfi/melinda-commons": "^10.0.3",
+    "@natlibfi/melinda-rest-api-client": "^1.0.0-alpha.4",
+    "@natlibfi/melinda-rest-api-commons": "^1.0.0-alpha.6",
     "http-status": "^1.4.2",
     "node-fetch": "2.6.0"
   },
