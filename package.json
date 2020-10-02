@@ -28,12 +28,12 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.11.2",
-    "@natlibfi/melinda-backend-commons": "^1.0.6",
-    "@natlibfi/melinda-commons": "^10.0.3",
-    "@natlibfi/melinda-rest-api-client": "^1.0.0-alpha.4",
-    "@natlibfi/melinda-rest-api-commons": "^1.0.0-alpha.6",
+    "@natlibfi/melinda-backend-commons": "^2.0.2",
+    "@natlibfi/melinda-commons": "^11.0.1",
+    "@natlibfi/melinda-rest-api-client": "^1.0.0-alpha.6",
+    "@natlibfi/melinda-rest-api-commons": "^1.0.0-alpha.25",
     "http-status": "^1.4.2",
-    "node-fetch": "2.6.0"
+    "node-fetch": "^2.6.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.1",
