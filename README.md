@@ -28,9 +28,11 @@ Example: node ../app/dist/index.js XXXXX,/exlXXXXX/lXXXXX/melinda-record-load-re
 | REST_API_PASSWORD              | Yes       | Password of the username to Melinda-rest-api |
 | RECORD_LOAD_API_TEMP_FILE_PATH | Yes       | Base folderlocation of logs*                 |
 | LOG_LEVEL                      | No        | Defaults to info**                           |
-* Full log location is generated as: RECORD_LOAD_API_TEMP_FILE_PATH + p_active_library + /scratch/ + p_log_file or p_reject_file.
+
+\* Full log location is generated as: RECORD_LOAD_API_TEMP_FILE_PATH + p_active_library + /scratch/ + p_log_file or p_reject_file.
   E.g. /exlxxxxx/axxxx/uxx_x/xxx01/scratch/record-load-api/test_load.log
-** More about LOG_LEVEL [here](https://www.npmjs.com/package/winston#logging-levels)
+
+\** More about LOG_LEVEL [here](https://www.npmjs.com/package/winston#logging-levels)
 
 ### Arguments
 | P_manage_18 arguments (23_3) | Mandatory   | Defaults   | Args |
