@@ -78,7 +78,20 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}, handleU
       logger.log('info', `${itemData.queueItemState || 'Waiting...'} modification time: ${itemData.modificationTime} , Ids handled: ${itemData.handledIds.length}`);
       return pollResult(correlationId, itemData.modificationTime, true);
     } catch (error) {
-      return handleUnexpectedAppError(error.payload);
+      if (error instanceof ApiError) {
+        if (
+          error.status === httpStatus.INTERNAL_SERVER_ERROR ||
+          error.status === httpStatus.FORBIDDEN || // No KVP group on bulk or non KVP group user tryes to use cataloger in
+          error.status === httpStatus.UNSUPPORTED_MEDIA_TYPE // Wrong content type
+        ) {
+          return handleUnexpectedAppError(error.payload);
+        }
+
+        logger.log('error', `Error from  rest-api-client: ${error.status} - ${error.payload}`);
+      }
+
+      // Keep polling
+      return pollResult(correlationId, modificationTime, true);
     }
   }
 }
