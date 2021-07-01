@@ -16,7 +16,7 @@
   "version": "1.0.1",
   "main": "./dist/index.js",
   "engines": {
-    "node": "14"
+    "node": "12"
   },
   "scripts": {
     "start": "node ./dist/index",

@@ -13,12 +13,12 @@ steps:
     image: quay.io/natlibfi/drone-gen-tags
 
   - name: audit
-    image: node:14
+    image: node:12
     commands:
       - npm audit --package-lock-only --production --audit-level=moderate
 
   - name: install
-    image: node:14
+    image: node:12
     commands:
       - npm install --no-optional
     environment:
@@ -36,7 +36,7 @@ steps:
   #    - npm run coverage
 
   - name: build-production
-    image: node:14
+    image: node:12
     commands:
       - npm run build
       - NPM_CONFIG_IGNORE_SCRIPTS=true npm ci --production
@@ -44,7 +44,7 @@ steps:
       branch: [master]
 
   - name: build-test
-    image: node:14
+    image: node:12
     commands:
       - npm run build:dev
       - NPM_CONFIG_IGNORE_SCRIPTS=true npm ci --production
