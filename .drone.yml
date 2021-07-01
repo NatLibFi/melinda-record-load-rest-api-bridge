@@ -20,7 +20,7 @@ steps:
   - name: install
     image: node:12
     commands:
-      - npm ci
+      - npm install --no-optional
     environment:
       NPM_CONFIG_IGNORE_SCRIPTS: true
 
