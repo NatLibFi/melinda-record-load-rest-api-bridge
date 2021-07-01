@@ -43,7 +43,7 @@ export default function ({restApiPassword, restApiUsername, restApiUrl}, handleU
         throw new ApiError(httpStatus.NOT_FOUND, `Inputfile not found or not accessable at ${pInputFile}`);
       }
 
-      return fs.createReadStream(params.pInputFile);
+      return fs.createReadStream(params.pInputFile, {encoding: 'utf8'});
     }
   }
 
